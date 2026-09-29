@@ -1,5 +1,6 @@
 package com.example.ch06
 
+import com.example.ch06.profile.ProfileRoute
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -67,9 +68,7 @@ fun MainScreen() {
                 )
             }
             composable(Routes.Explore.route) { ExploreScreen() }
-            // TODO [T4.7] Ganti ProfileScreen() menjadi ProfileRoute(). Route-lah yang
-            //   membuat ProfileViewModel; NavController tidak diberikan ke ViewModel.
-            composable(Routes.Profile.route) { ProfileScreen() }
+            composable(Routes.Profile.route) { ProfileRoute() }
 
             composable(
                 route     = Routes.Detail.route,
