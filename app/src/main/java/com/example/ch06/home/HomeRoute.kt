@@ -7,21 +7,27 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ch06.MainApplication
 
-// Route: satu-satunya bagian yang tahu soal ViewModel dan Android framework
 @Composable
 fun HomeRoute(
     onArticleClick: (Int) -> Unit
 ) {
-    val app = LocalContext.current.applicationContext as MainApplication
+    val app =
+        LocalContext.current.applicationContext
+                as MainApplication
+
     val viewModel: HomeViewModel = viewModel(
-        factory = HomeViewModelFactory(app.container.articleRepository)
+        factory = HomeViewModelFactory(
+            app.container.articleRepository
+        )
     )
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    val uiState by
+    viewModel.uiState.collectAsStateWithLifecycle()
 
     HomeScreen(
         uiState = uiState,
         onArticleClick = onArticleClick,
-        // TODO [T2.5] Teruskan `onQueryChange = viewModel::onQueryChange` ke HomeScreen.
+        onQueryChange = viewModel::onQueryChange,
         onRetry = viewModel::refresh
     )
 }
