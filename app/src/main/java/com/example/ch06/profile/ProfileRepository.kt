@@ -14,7 +14,7 @@ class FakeProfileRepository :
 
     override fun getProfile(): UserProfile {
         return UserProfile(
-            username = "Mahasiswa Android",
+            username = "Hana Nisrina",
             notificationsEnabled = true
         )
     }
