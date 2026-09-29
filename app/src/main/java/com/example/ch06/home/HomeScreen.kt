@@ -11,11 +11,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -26,104 +31,240 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.ch06.data.Article
 
-// Screen murni presentasional: hanya menerima state dan callback,
-// tidak tahu apa-apa soal ViewModel atau repository.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     uiState: HomeUiState,
     onArticleClick: (Int) -> Unit,
-    // TODO [T2.4] Tambahkan parameter `onQueryChange: (String) -> Unit` di sini.
+    onQueryChange: (String) -> Unit,
     onRetry: () -> Unit
 ) {
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Beranda") }) }
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text("Beranda")
+                }
+            )
+        }
     ) { padding ->
-        // TODO [T2.4] Bungkus isi dengan Column dan tampilkan composable `SearchField` di
-        //   atas daftar: OutlinedTextField(value = uiState.query, onValueChange = onQueryChange).
-        //   TextField hanya MELAPORKAN teks yang berubah; ia tidak menyimpan atau
-        //   memfilter apa pun sendiri. Tampilkan tombol hapus (ikon Clear) saat query tidak kosong.
-        Box(
+
+        Column(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            when {
-                uiState.isLoading -> LoadingContent()
-                uiState.errorMessage != null -> ErrorContent(
-                    message = uiState.errorMessage,
-                    onRetry = onRetry
-                )
-                // TODO [T3.2] Tambahkan cabang `uiState.isEmptyResult -> EmptyResultContent(...)`
-                //   di antara cabang error dan daftar. Pesannya HARUS menyebut kata kunci yang
-                //   dicari (mis. Tidak ada artikel untuk "xyz"), bukan sekadar layar kosong.
-                else -> ArticleList(
-                    articles = uiState.articles,
-                    onArticleClick = onArticleClick
-                )
+
+            SearchField(
+                query = uiState.query,
+                onQueryChange = onQueryChange
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            ) {
+                when {
+                    uiState.isLoading ->
+                        LoadingContent()
+
+                    uiState.errorMessage != null ->
+                        ErrorContent(
+                            message = uiState.errorMessage,
+                            onRetry = onRetry
+                        )
+
+                    uiState.isEmptyResult ->
+                        EmptyResultContent(
+                            query = uiState.query
+                        )
+
+                    else ->
+                        ArticleList(
+                            articles = uiState.articles,
+                            onArticleClick =
+                                onArticleClick
+                        )
+                }
             }
         }
     }
 }
 
 @Composable
+private fun SearchField(
+    query: String,
+    onQueryChange: (String) -> Unit
+) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                horizontal = 16.dp,
+                vertical = 8.dp
+            ),
+        label = {
+            Text("Cari artikel")
+        },
+        singleLine = true,
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(
+                    onClick = {
+                        onQueryChange("")
+                    }
+                ) {
+                    Icon(
+                        imageVector =
+                            Icons.Filled.Clear,
+                        contentDescription =
+                            "Hapus pencarian"
+                    )
+                }
+            }
+        }
+    )
+}
+
+@Composable
 private fun LoadingContent() {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
         CircularProgressIndicator()
     }
 }
 
 @Composable
-private fun ErrorContent(message: String, onRetry: () -> Unit) {
+private fun ErrorContent(
+    message: String,
+    onRetry: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        verticalArrangement =
+            Arrangement.Center,
+        horizontalAlignment =
+            Alignment.CenterHorizontally
     ) {
-        Text(text = message, style = MaterialTheme.typography.bodyLarge)
-        Spacer(Modifier.height(12.dp))
-        Button(onClick = onRetry) { Text("Coba Lagi") }
+        Text(
+            text = message,
+            style =
+                MaterialTheme.typography.bodyLarge
+        )
+
+        Spacer(
+            Modifier.height(12.dp)
+        )
+
+        Button(
+            onClick = onRetry
+        ) {
+            Text("Coba Lagi")
+        }
     }
 }
 
 @Composable
-private fun ArticleList(articles: List<Article>, onArticleClick: (Int) -> Unit) {
-    LazyColumn(
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+private fun EmptyResultContent(
+    query: String
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        contentAlignment = Alignment.Center
     ) {
-        items(articles, key = { it.id }) { article ->
+        Text(
+            text =
+                "Tidak ada artikel untuk \"$query\"",
+            style =
+                MaterialTheme.typography.bodyLarge
+        )
+    }
+}
+@Composable
+private fun ArticleList(
+    articles: List<Article>,
+    onArticleClick: (Int) -> Unit
+) {
+    LazyColumn(
+        contentPadding =
+            PaddingValues(16.dp),
+        verticalArrangement =
+            Arrangement.spacedBy(8.dp)
+    ) {
+        items(
+            items = articles,
+            key = {
+                it.id
+            }
+        ) { article ->
+
             ArticleCard(
                 article = article,
-                onClick = { onArticleClick(article.id) }
+                onClick = {
+                    onArticleClick(article.id)
+                }
             )
         }
     }
 }
 
 @Composable
-private fun ArticleCard(article: Article, onClick: () -> Unit) {
+private fun ArticleCard(
+    article: Article,
+    onClick: () -> Unit
+) {
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = article.title, style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(2.dp))
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = article.title,
+                style =
+                    MaterialTheme.typography
+                        .titleMedium
+            )
+
+            Spacer(
+                Modifier.height(2.dp)
+            )
+
             Text(
                 text = article.category,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary
+                style =
+                    MaterialTheme.typography
+                        .labelMedium,
+                color =
+                    MaterialTheme.colorScheme
+                        .primary
             )
-            Spacer(Modifier.height(4.dp))
+
+            Spacer(
+                Modifier.height(4.dp)
+            )
+
             Text(
                 text = article.excerpt,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style =
+                    MaterialTheme.typography
+                        .bodySmall,
+                color =
+                    MaterialTheme.colorScheme
+                        .onSurfaceVariant,
                 maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+                overflow =
+                    TextOverflow.Ellipsis
             )
         }
     }
